@@ -1,3 +1,6 @@
 [submodule "SeeInTheDark/Learning-to-See-in-the-Dark"]
 	path = SeeInTheDark/Learning-to-See-in-the-Dark
 	url = https://github.com/cchen156/Learning-to-See-in-the-Dark.git
+[submodule "SeeInTheDark/EnlightenGAN"]
+	path = SeeInTheDark/EnlightenGAN
+	url = https://github.com/VITA-Group/EnlightenGAN.git
