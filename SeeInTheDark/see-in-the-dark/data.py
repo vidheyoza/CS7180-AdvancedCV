@@ -23,15 +23,14 @@ def pack_raw(raw):
     im = np.maximum(im - 512, 0) / (16383 - 512)
 
     im = np.expand_dims(im, axis=2)
-    img_shape = im.shape
-    h = img_shape[0]
-    w = img_shape[1]
+    h = im.shape[0]
+    w = im.shape[1]
 
-    out = np.concatenate((im[0:h:2, 0:w:2, :],
-                          im[0:h:2, 1:w:2, :],
-                          im[1:h:2, 1:w:2, :],
-                          im[1:h:2, 0:w:2, :]), axis=2)
-    return out
+    return np.concatenate((im[0:h:2, 0:w:2, :],
+                           im[0:h:2, 1:w:2, :],
+                           im[1:h:2, 1:w:2, :],
+                           im[1:h:2, 0:w:2, :]), axis=2)
+    # return out
 
 
 def load_raw_from_list(list_of_raw_files: List[str]) -> np.ndarray:
@@ -49,7 +48,20 @@ def load_raw_from_list(list_of_raw_files: List[str]) -> np.ndarray:
     return np.array(raw_images)
 
 
-def load_raw_images(batch_size, batch_num, dark_images_paths, light_images_dict):
+def load_raw_images(batch_size: int,
+                    batch_num: int,
+                    dark_images_paths: List[str],
+                    light_images_dict: dict) -> (np.ndarray, np.ndarray):
+    """
+    Load dark images with corresponding light images (necessary because same image has multiple dark images)
+
+    @param batch_size: Training batch size
+    @param batch_num: Batch iteration number
+    @param dark_images_paths: list of paths of dark images
+    @param light_images_dict: dict of paths of light image names with their paths
+
+    @return: tuple of (X,y) image arrays in NP format
+    """
     dark_images = load_raw_from_list(dark_images_paths[batch_num * batch_size:(batch_num + 1) * batch_size])
 
     light_images_paths = []

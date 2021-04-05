@@ -33,11 +33,11 @@ def unet_3layer(input_shape=(4240, 2832), loss='mse', optimizer='adam') -> Model
     de3 = UpSampling2D((2, 2))(de3)
     merge3 = concatenate([en3, de3])
 
-    de2 = Conv2D(64, (3, 3), activation='relu', padding='same')(merge3)
+    de2 = Conv2D(32, (3, 3), activation='relu', padding='same')(merge3)
     de2 = UpSampling2D((2, 2))(de2)
     merge2 = concatenate([en2, de2])
 
-    de1 = Conv2D(64, (3, 3), activation='relu', padding='same')(merge2)
+    de1 = Conv2D(16, (3, 3), activation='relu', padding='same')(merge2)
     de1 = UpSampling2D((2, 2))(de1)
     merge1 = concatenate([en1, de1])
 
