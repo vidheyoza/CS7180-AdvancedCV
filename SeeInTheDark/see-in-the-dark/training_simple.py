@@ -1,5 +1,6 @@
 # Main training file
 
+import numpy as np
 import glob
 import rawpy
 from tqdm import tqdm
@@ -24,7 +25,7 @@ os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
 data_root = 'D:\\Terabyte2.0\\Datasets\\See in the Dark\\'
 project_root = 'C:\\Users\\vidhe\\Documents\\Northeastern\\4\\AdvancedCV\\SeeInTheDark\\see-in-the-dark\\'
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 10
 BATCH_SIZE = 1
 
 # #### load and preprocess dataset
@@ -61,14 +62,29 @@ unet_model.summary()
 
 # batch-wise training means using loops for epochs and batches both
 
+min_loss = np.inf
+train_losses = np.inf
 for e in range(NUM_EPOCHS):
-    for b in tqdm(range(int(DATA_SIZE / BATCH_SIZE))):
-        # load batch data
-        X_train, y_train = load_raw_images(BATCH_SIZE, b, dark_images_paths, light_images_dict)
+    with tqdm(
+            bar_format='Loss: {postfix} | {l_bar}{bar}{r_bar}',
+            position=0, leave=True  # for single-line tqdm bar
+            # postfix=round(train_losses, 6)
+    ) as t:
+        for b in tqdm(range(int(DATA_SIZE / BATCH_SIZE))):
+            # load batch data
+            X_train, y_train = load_raw_images(BATCH_SIZE, b, dark_images_paths, light_images_dict)
 
-        # train on batch
-        unet_model.train_on_batch(X_train, y_train)
-#     TODO save model if train accuracy is best yet
+            # train on batch
+            unet_model.train_on_batch(X_train, y_train)
+            train_losses = unet_model.test_on_batch(X_train, y_train)
+            t.postfix = round(train_losses, 6)
+            t.update()
+        # TODO save model if train accuracy is best yet
+        losses = unet_model.evaluate(X_train, y_train)
+        if losses < min_loss:
+            min_loss = losses
+            unet_model.save_weights(project_root + 'saved_weights\\unet_3layer_e' +
+                                    str(e) + 'b' + str(BATCH_SIZE) + '.h5')
 
 # #### save model weights
 unet_model.save_weights(project_root + 'saved_weights\\unet_3layer_e' +
