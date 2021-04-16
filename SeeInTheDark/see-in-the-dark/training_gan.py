@@ -31,7 +31,7 @@ project_root = 'C:\\Users\\vidhe\\Documents\\Northeastern\\4\\AdvancedCV\\SeeInT
 NUM_EPOCHS = 10
 BATCH_SIZE = 1
 
-# #### load and preprocess dataset
+# #### Load and preprocess dataset
 
 # data paths
 input_dir = data_root + 'Sony\\Sony\\short\\'
@@ -48,18 +48,16 @@ for path in light_images_paths:
 
 # since data volume is large, batch-wise loading is done
 
-# #### load and prepare model
+# #### Load and prepare model
 
-# get input shape from one of the images
+# 1. get input shape from one of the images
 DATA_SIZE = len(dark_images_paths)
 
 img = rawpy.imread(dark_images_paths[0])
 INPUT_SHAPE = (int(img.sizes.height / 2), int(img.sizes.width / 2), 4)
 print(INPUT_SHAPE)
 
-# load model
-
-# Load optimizer
+# 2. load optimizer and loss
 opt = Adam(lr=0.0002, beta_1=0.5)
 loss = 'binary_crossentropy'
 
@@ -67,6 +65,7 @@ generator, discriminator = simple_gan(INPUT_SHAPE, gen_loss=loss, gen_opt=opt, d
 generator.summary()
 discriminator.summary()
 
+# 3. build GAN
 discriminator.trainable = False
 gan_input = Input(shape=INPUT_SHAPE)
 gan = generator(gan_input)
@@ -74,29 +73,36 @@ gan_output = discriminator(gan)
 gan_model = Model(gan_input, gan_output)
 gan_model.compile(loss=loss, optimizer=opt)
 
-# #### train model
+# #### Train model
 
 # batch-wise training means using loops for epochs and batches both
 # 2-step training: 1 = min generator loss, 2 = max discriminator loss
 gen_losses = []
 disc_losses = []
 for e in range(NUM_EPOCHS):
-    for b in range(int(DATA_SIZE / BATCH_SIZE)):
+    for b in tqdm(range(int(DATA_SIZE / BATCH_SIZE))):
         noise_shape = (BATCH_SIZE,) + INPUT_SHAPE
         noise = np.random.normal(0, 1, size=list(noise_shape))
 
+        # 1. get real images from storage, generated image from generator
         generated_images = generator.predict(noise)
         real_dark_images, real_light_images = load_raw_images(BATCH_SIZE, b, dark_images_paths, light_images_dict)
 
-        discriminator_X = np.concatenate(real_dark_images, generated_images)
-        discriminator_y = np.zeros(2*BATCH_SIZE)
+        # verifying images are of same shape
+        # print(generated_images.shape)
+        # print(real_dark_images.shape)
+
+        # 2. train discriminator on fused dataset
+        discriminator_X = np.concatenate((real_dark_images, generated_images), axis=0)
+        discriminator_y = np.zeros(2 * BATCH_SIZE)
         discriminator_y[:BATCH_SIZE] = 0.9
 
         discriminator.trainable = True
         disc_loss = discriminator.train_on_batch(discriminator_X, discriminator_y)
 
+        # 3. train generator with goal of maximizing discriminator loss
         discriminator.trainable = False
-        gan_y = np.zeros(BATCH_SIZE)
+        gan_y = np.ones(BATCH_SIZE)
         gen_loss = gan_model.train_on_batch(noise, gan_y)
 
     gen_losses.append(gen_loss)
@@ -104,4 +110,4 @@ for e in range(NUM_EPOCHS):
 
     # TODO plot sample images to see progress after every X epochs
 
-# #### save model weights
+# #### Save model weights

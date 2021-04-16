@@ -89,7 +89,7 @@ def simple_gan(input_shape=(4240, 2832),
 
     # final output convolutions
     gen_output = Conv2D(16, (3, 3), activation='relu', padding='same')(merge1)
-    gen_output = Conv2D(1, (1, 1), activation='relu', padding='same')(gen_output)
+    gen_output = Conv2D(4, (1, 1), activation='relu', padding='same')(gen_output)
 
     gen = Model(gen_input, gen_output)
     gen.compile(optimizer=gen_opt, loss=gen_loss)
