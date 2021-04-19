@@ -5,7 +5,7 @@
 from typing import List
 import numpy as np
 import rawpy
-from PIL import Image
+from tqdm import tqdm
 
 
 def pack_raw(raw):
@@ -48,23 +48,38 @@ def load_raw_from_list(list_of_raw_files: List[str]) -> np.ndarray:
     return np.array(raw_images)
 
 
-def patch_images(dark_images: np.ndarray, light_images: np.ndarray) -> (np.ndarray, np.ndarray):
+def patch_images(dark_images: np.ndarray,
+                 light_images: np.ndarray,
+                 size: int, stride: int) -> (np.ndarray, np.ndarray):
     """
     Creates patches of large-size images. Useful for various reasons like efficient hardware use, better training etc.
 
     @param dark_images: List of dark images in NP format
     @param light_images: List of light/bright images in NP format
+    @param size: Final patch size
+    @param stride: Stride size between patches
 
     @return: tuple of (X,y) image arrays in NP format
     """
-    raise NotImplementedError('Not yet implemented')
+    dark_patches = []
+    light_patches = []
+    for i in range(dark_images.shape[0]):
+        for p in range(0, dark_images.shape[1] - size + stride, stride):
+            for q in range(0, dark_images.shape[2] - size + stride, stride):
+                if (p + size <= dark_images.shape[1]) and (q + size <= dark_images.shape[2]):
+                    dark_patches.append(dark_images[i, p:p + size, q:q + size])
+                    light_patches.append(light_images[i, p:p + size, q:q + size])
+                    # print(dark_images[i, p:p + size, q:q + size].shape)
+
+    return np.array(dark_patches), np.array(light_patches)
 
 
 def load_raw_images(batch_size: int,
                     batch_num: int,
                     dark_images_paths: List[str],
                     light_images_dict: dict,
-                    patched_images: bool = False) -> (np.ndarray, np.ndarray):
+                    patched_images: bool = False,
+                    patch_size: int = 0, patch_stride: int = 0) -> (np.ndarray, np.ndarray):
     """
     Load dark images with corresponding light images (necessary because same image has multiple dark images)
 
@@ -73,6 +88,8 @@ def load_raw_images(batch_size: int,
     @param dark_images_paths: list of paths of dark images
     @param light_images_dict: dict of paths of light image names with their paths
     @param patched_images: Boolean value to change final output to patch of images instead of full images
+    @param patch_size: Size of final patch
+    @param patch_stride: Stride between generated patches
 
     @return: tuple of (X,y) image arrays in NP format
     """
@@ -84,8 +101,8 @@ def load_raw_images(batch_size: int,
         light_images_paths.append(light_images_dict[dark_img_name])
     light_images = load_raw_from_list(light_images_paths[batch_num * batch_size:(batch_num + 1) * batch_size])
 
-    if patched_images:
-        return patch_images(dark_images, light_images)
+    if patched_images and patch_size > 0 and patch_stride > 0:
+        return patch_images(dark_images, light_images, size=patch_size, stride=patch_stride)
 
     return dark_images, light_images
 
