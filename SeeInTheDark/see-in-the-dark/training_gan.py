@@ -76,7 +76,7 @@ gan_model = Model(gan_input, gan_output)
 gan_model.compile(loss=loss, optimizer=opt)
 
 # #### Train model
-
+# '''
 # batch-wise training means using loops for epochs and batches both
 # 2-step training: 1 = min generator loss, 2 = max discriminator loss
 gen_losses = []
@@ -87,16 +87,16 @@ for e in range(NUM_EPOCHS):
         real_dark_images, real_light_images = load_raw_images(BATCH_SIZE, b, dark_images_paths, light_images_dict,
                                                               patched_images=True, patch_size=100, patch_stride=100)
 
-        noise_shape = real_light_images.shape
-        noise = np.random.normal(0, 1, size=list(noise_shape))
-        generated_images = generator.predict(noise)
+        # noise_shape = real_light_images.shape
+        # noise = np.random.normal(0, 1, size=list(noise_shape))
+        generated_images = generator.predict(real_dark_images)
 
         # verifying images are of same shape
         # print(generated_images.shape)
         # print(real_dark_images.shape)
 
         # 2. train discriminator on fused dataset
-        discriminator_X = np.concatenate((real_dark_images, generated_images), axis=0)
+        discriminator_X = np.concatenate((real_light_images, generated_images), axis=0)
         discriminator_y = np.zeros(2 * generated_images.shape[0])
         discriminator_y[:BATCH_SIZE] = 0.9
 
@@ -106,7 +106,7 @@ for e in range(NUM_EPOCHS):
         # 3. train generator with goal of maximizing discriminator loss
         discriminator.trainable = False
         gan_y = np.ones(generated_images.shape[0])
-        gen_loss = gan_model.train_on_batch(noise, gan_y)
+        gen_loss = gan_model.train_on_batch(real_dark_images, gan_y)
 
     gen_losses.append(gen_loss)
     disc_losses.append(disc_loss)
@@ -116,3 +116,21 @@ for e in range(NUM_EPOCHS):
 # #### Save model weights
 gan_model.save_weights(project_root + 'saved_weights\\simplegan_patched_e' +
                        str(e) + 'b' + str(BATCH_SIZE) + '.h5')
+# '''
+
+# #### Test model
+
+# load saved model
+generator, discriminator = simple_gan(INPUT_SHAPE, gen_loss=loss, gen_opt=opt, disc_loss=loss, disc_opt=opt)
+discriminator.trainable = False
+gan_input = Input(shape=INPUT_SHAPE)
+gan = generator(gan_input)
+gan_output = discriminator(gan)
+gan_model = Model(gan_input, gan_output)
+gan_model.load_weights(project_root + 'saved_weights\\simplegan_patched_e1b1.h5')
+gan_model.compile(loss=loss, optimizer=opt)
+
+# test images
+real_dark_images, real_light_images = load_raw_images(10, 500, dark_images_paths, light_images_dict,
+                                                              patched_images=True, patch_size=100, patch_stride=100)
+predicted = generator.predict(real_dark_images)

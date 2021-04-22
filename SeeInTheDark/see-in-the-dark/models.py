@@ -5,7 +5,7 @@ from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Dense, Dropout, concatenate
 
 
-def unet_3layer(input_shape=(4240, 2832), loss='mse', optimizer='adam') -> Model:
+def unet_3layer(input_shape=(4240, 2832, 4), loss='mse', optimizer='adam') -> Model:
     """
     Basic U-Net type model with 3-layer encoder-decoder architecture
 
@@ -53,7 +53,7 @@ def unet_3layer(input_shape=(4240, 2832), loss='mse', optimizer='adam') -> Model
 
 
 # TODO design a simple GAN architecture
-def simple_gan(input_shape=(4240, 2832),
+def simple_gan(input_shape=(4240, 2832, 4),
                gen_loss='mse', gen_opt='adam',
                disc_loss='mse', disc_opt='adam') -> (Model, Model):
     """
