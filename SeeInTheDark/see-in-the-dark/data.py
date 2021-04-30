@@ -109,3 +109,12 @@ def load_raw_images(batch_size: int,
 
 def load_img_from_list(list_of_img_files: List[str]) -> np.ndarray:
     raise NotImplementedError('Not yet implemented')
+
+
+def bayer_to_jpeg(img_bayer: np.ndarray) -> np.ndarray:
+    # only green channel needs to be changed, which is index 2 and 4
+    img_rgb = np.zeros((img_bayer.shape[0], 3))
+    img_rgb[:, 0] = img_bayer[:, 0]
+    img_rgb[:, 2] = img_bayer[:, 2]
+    img_rgb[:, 1] = (img_bayer[:, 1] + img_bayer[:, 3]) / 2
+    return img_rgb

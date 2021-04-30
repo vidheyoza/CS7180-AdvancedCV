@@ -9,7 +9,7 @@ from keras.layers import Input
 from keras.optimizers import Adam
 
 from models import simple_gan
-from data import load_raw_images
+from data import load_raw_images, bayer_to_jpeg
 
 # TF GPU flags
 import tensorflow as tf
@@ -76,3 +76,6 @@ real_dark_images, real_light_images = load_raw_images(10, 500, dark_images_paths
 predicted = generator.predict(real_dark_images)
 
 # visualize predicted images
+
+for i, image in enumerate(predicted):
+    plt.imsave('sample_outputs/' + str(i) + '.jpg', bayer_to_jpeg(image))
