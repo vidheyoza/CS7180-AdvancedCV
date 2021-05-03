@@ -19,7 +19,7 @@ Results show PSNR of 29.07 and SSIM of 0.791, which fall in line with other benc
 
 ## How to run the code
 
-THe SITD dataset is too large to be pushed on GitHub, so to get the data visit [this link]() that contains 2 zip files: `Fuji` and `Sony`. 
+THe SITD dataset is too large to be pushed on GitHub, so to get the data visit these links: [Fuji](https://storage.googleapis.com/isl-datasets/SID/Fuji.zip) and [Sony](https://storage.googleapis.com/isl-datasets/SID/Sony.zip). 
 Alternatively, use the `download_dataset.py` script in [SeeInTheDark/Learning-to-See-in-the-Dark]. 
 - For training, modify the `data_root` path string in `training_gan.py` to where the data is downloaded and extracted. 
 - For testing, modify the `data_root` path string in `testing_gan.py` similarly. 
